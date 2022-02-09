@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import * as mongoose from 'mongoose';
 import { Document } from 'mongoose';
+import { Cart } from 'src/carts/schemas/carts.schema';
 
 export type UserDocument = User & Document;
 
@@ -14,14 +16,8 @@ export class User {
   @Prop()
   avatar: string;
 
-  @Prop()
-  cart: object[];
-
-  @Prop()
-  cart_count: number;
-
-  @Prop()
-  total_cost: number;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Cart' })
+  cart: Cart;
 
   @Prop()
   is_admin: boolean;
