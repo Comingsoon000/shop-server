@@ -5,5 +5,5 @@ export class UpdateProductDto {
   readonly title: string;
   readonly description: string;
   readonly iconUrl: string;
-  readonly categories: string[];
+  readonly category: string;
 }
