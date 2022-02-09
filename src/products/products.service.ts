@@ -24,12 +24,14 @@ export class ProductsService {
   async create(productDto: CreateProductDto): Promise<Product> {
     const newProduct = new this.productModel(productDto);
 
-    productDto.categories.forEach(async (categoryId) => {
-      const category = await this.categoryModel.findById(categoryId);
+    const category = await this.categoryModel.findById(productDto.category);
+    if (category) {
       category.products.push(newProduct._id);
       category.productsCount += 1;
       await category.save();
-    });
+    } else {
+      console.log('category is not defined');
+    }
 
     return newProduct.save();
   }
@@ -37,14 +39,16 @@ export class ProductsService {
   async remove(id: string): Promise<Product> {
     const product = await this.productModel.findById(id);
 
-    product.categories.forEach(async (categoryId) => {
-      const category = await this.categoryModel.findById(categoryId);
+    const category = await this.categoryModel.findById(product.category);
+    if (category) {
       category.products = category.products.filter((product) => {
         return product.toString() !== id;
       });
       category.productsCount -= 1;
       await category.save();
-    });
+    } else {
+      console.log('category is not defined');
+    }
 
     return product.remove();
   }
@@ -53,29 +57,47 @@ export class ProductsService {
     const oldProduct = await this.productModel.findById(id);
     const productId = oldProduct._id;
 
-    if (
-      JSON.stringify(oldProduct.categories) ===
-      JSON.stringify(productDto.categories)
-    ) {
+    if (oldProduct.category.toString() === productDto.category) {
       return this.productModel.findByIdAndUpdate(id, productDto, { new: true });
     }
 
-    oldProduct.categories.forEach(async (categoryId) => {
-      const category = await this.categoryModel.findById(categoryId);
-      category.products = category.products.filter((product) => {
-        return product.toString() !== id;
-      });
-      category.productsCount -= 1;
-      await category.save();
-    });
+    const delProductFromOldCategory = async () => {
+      const oldCategory = await this.categoryModel.findById(
+        oldProduct.category,
+      );
+      if (oldCategory) {
+        oldCategory.products = oldCategory.products.filter((product) => {
+          return product.toString() !== id;
+        });
+        oldCategory.productsCount -= 1;
+        await oldCategory.save();
+      } else {
+        console.log('oldCategory is not defined');
+      }
+    };
 
-    productDto.categories.forEach(async (categoryId) => {
-      const category = await this.categoryModel.findById(categoryId);
-      category.products.push(productId);
-      category.productsCount += 1;
-      await category.save();
-    });
+    const addProductToNewCategory = async () => {
+      const newCategory = await this.categoryModel.findById(
+        productDto.category,
+      );
+      if (newCategory) {
+        newCategory.products.push(productId);
+        newCategory.productsCount += 1;
+        await newCategory.save();
+      } else {
+        console.log('newCategory is not defined');
+      }
+    };
 
-    return this.productModel.findByIdAndUpdate(id, productDto, { new: true });
+    await delProductFromOldCategory();
+    await addProductToNewCategory();
+
+    const newProduct = await this.productModel.findByIdAndUpdate(
+      id,
+      productDto,
+      { new: true },
+    );
+
+    return newProduct;
   }
 }
