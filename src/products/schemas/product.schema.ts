@@ -25,8 +25,8 @@ export class Product {
   @Prop()
   iconUrl: string;
 
-  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Category' }] })
-  categories: Category[];
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Category' })
+  category: Category;
 }
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
