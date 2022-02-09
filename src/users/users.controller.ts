@@ -12,20 +12,18 @@ export class UsersController {
     return this.usersService.getAll();
   }
 
-  @Get()
+  @Get(':id')
   getById(@Param('id') id: string): Promise<User> {
     return this.usersService.getById(id);
   }
 
   @Post()
   create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.usersService.create(createUserDto)
+    return this.usersService.create(createUserDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string): Promise<User> {
     return this.usersService.remove(id);
   }
-
 }
-
