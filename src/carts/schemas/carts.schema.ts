@@ -17,6 +17,15 @@ export class Cart {
   @Prop()
   total: number;
 
+  @Prop()
+  isClientOk: boolean;
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }] })
+  productsOverflow: Product[];
+
+  @Prop()
+  timestamp: number;
+
   @Prop([
     {
       count: { type: Number },
