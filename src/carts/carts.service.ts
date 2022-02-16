@@ -38,23 +38,47 @@ export class CartsService {
   }
 
   async update(userId: string, cartDto: UpdateCartDto): Promise<Cart> {
+    const productsLimit = 5;
+
     const calculate = async (cartDto: UpdateCartDto) => {
+      let index = 0;
       let total = 0;
       let productsCount = 0;
+      let isClientOk = true;
+      let timestamp = 0;
+      const productsOverflow: Product[] = [];
+
       for (const { count, product } of cartDto.products) {
         const currentProduct = await this.productModel.findById(product);
-        total += currentProduct.price * count;
-        productsCount += count;
+        let currentProductCount = count;
+
+        if (count > productsLimit) {
+          cartDto.products[index].count = productsLimit;
+          currentProductCount = productsLimit;
+          isClientOk = false;
+          productsOverflow.push(currentProduct._id);
+        }
+
+        total += currentProduct.price * currentProductCount;
+        productsCount += currentProductCount;
+        index += 1;
       }
-      return [total, productsCount];
+
+      timestamp = Date.now();
+
+      return { total, productsCount, isClientOk, timestamp, productsOverflow };
     };
 
-    const [total, productsCount] = await calculate(cartDto);
+    const { total, productsCount, isClientOk, timestamp, productsOverflow } =
+      await calculate(cartDto);
 
     const newCart = {
       ...cartDto,
       productsCount,
       total,
+      isClientOk,
+      timestamp,
+      productsOverflow,
     };
 
     return this.cartModel.findOneAndUpdate({ user: userId }, newCart, {
