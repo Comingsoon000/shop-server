@@ -81,8 +81,10 @@ export class CartsService {
       productsOverflow,
     };
 
-    return this.cartModel.findOneAndUpdate({ user: userId }, newCart, {
-      new: true,
-    });
+    return this.cartModel
+      .findOneAndUpdate({ user: userId }, newCart, {
+        new: true,
+      })
+      .populate('products.product');
   }
 }
