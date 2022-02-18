@@ -60,10 +60,10 @@ export class CartsService {
         }
 
         total += currentProduct.price * currentProductCount;
-        productsCount += currentProductCount;
         index += 1;
       }
 
+      productsCount = index;
       timestamp = Date.now();
 
       return { total, productsCount, isClientOk, timestamp, productsOverflow };

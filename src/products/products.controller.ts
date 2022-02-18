@@ -6,7 +6,10 @@ import {
   Param,
   Post,
   Put,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
+import { PaginationWrapper } from 'src/types/types';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-pruduct.dto';
 import { ProductsService } from './products.service';
@@ -17,8 +20,8 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Get()
-  getAll(): Promise<Product[]> {
-    return this.productsService.getAll();
+  getAll(@Req() req: Request): Promise<PaginationWrapper<Product[]>> {
+    return this.productsService.getAll(req);
   }
 
   @Get(':id')

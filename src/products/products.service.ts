@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { Request } from 'express';
 import { Category } from 'src/categories/schemas/category.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-pruduct.dto';
 import { Product, ProductDocument } from './schemas/product.schema';
+import { PaginationWrapper } from 'src/types/types';
 
 @Injectable()
 export class ProductsService {
@@ -13,8 +15,52 @@ export class ProductsService {
     @InjectModel(Category.name) private categoryModel: Model<Category>,
   ) {}
 
-  async getAll(): Promise<Product[]> {
-    return this.productModel.find().exec();
+  async getAll(req: Request): Promise<PaginationWrapper<Product[]>> {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 40;
+    let data: Product[];
+    let sortKey: string;
+    let sortValue: string;
+    let category: string;
+
+    if (req.query.category) {
+      category = req.query.category.toString();
+      sortKey = 'category';
+      sortValue = category;
+    } else if (req.query.sortKey && req.query.sortValue) {
+      sortKey = req.query.sortKey.toString();
+      sortValue = req.query.sortValue.toString();
+    } else {
+      const length = await this.productModel.count();
+
+      data = await this.productModel
+        .find()
+        .skip((page - 1) * limit)
+        .limit(limit);
+
+      return {
+        data,
+        length,
+        page,
+        limit,
+        lastPage: Math.ceil(length / limit),
+      };
+    }
+
+    data = await this.productModel
+      .find({ [sortKey]: sortValue })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const length = await this.productModel.count({ [sortKey]: sortValue });
+
+    return {
+      data,
+      length,
+      page,
+      limit,
+      lastPage: Math.ceil(length / limit),
+    };
   }
 
   async getById(id: string): Promise<Product> {
