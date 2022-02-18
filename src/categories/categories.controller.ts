@@ -6,7 +6,10 @@ import {
   Param,
   Post,
   Put,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
+import { PaginationWrapper } from 'src/types/types';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -17,8 +20,8 @@ export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 
   @Get()
-  getAll(): Promise<Category[]> {
-    return this.categoriesService.getAll();
+  getAll(@Req() req: Request): Promise<PaginationWrapper<Category[]>> {
+    return this.categoriesService.getAll(req);
   }
 
   @Get(':id')
